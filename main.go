@@ -21,7 +21,7 @@ func main() {
 	router := mux.NewRouter()
 
 	//
-	db, err = sql.Open("mysql", "<user>: <password>@tcp(127.0.0.1:3306)/<dbname>") //
+	db, err = sql.Open("mysql", "root:password@/Books") //
 	if err != nil {
 		panic(err.Error())
 	}
@@ -39,15 +39,8 @@ func main() {
 
 //Book Struct
 type Book struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Author *Author `json:"author"`
-}
-
-//Author Struct
-type Author struct {
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
+	ID    string `json:"id"`
+	Title string `json:"title"`
 }
 
 //books
