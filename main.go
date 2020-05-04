@@ -98,7 +98,7 @@ func getBook(w http.ResponseWriter, r *http.Request) {
 //Create a New Book
 func createBook(w http.ResponseWriter, r *http.Request) {
 
-	stmt, err := db.Prepare("INSERT INTO books(`id`,`title`) VALUES(?,?)")
+	stmt, err := db.Prepare("INSERT INTO books(id,title) VALUES(?)")
 	if err != nil {
 		panic(err.Error())
 	}
