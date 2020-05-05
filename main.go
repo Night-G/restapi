@@ -107,12 +107,12 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	title := keyVal["title"]
 	id := keyVal["id"]
 
-	a, err := db.Query("INSERT INTO books VALUES(@id,@title)", sql.Named("id", id), sql.Named("title", title))
+	result, err := db.Query("INSERT INTO books VALUES(@id,@title)", sql.Named("id", id), sql.Named("title", title))
 	if err != nil {
 		panic(err.Error())
 	}
 
-	defer a.Close()
+	defer result.Close()
 
 	fmt.Fprintf(w, "New book was created")
 }
@@ -130,12 +130,14 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &keyVal)
 	newTitle := keyVal["title"]
 
-	ad, err := db.Query("UPDATE Books SET Title = @newTitle WHERE id = @id",
+	result, err := db.Query("UPDATE Books SET Title = @newTitle WHERE id = @id",
 		sql.Named("newTitle", newTitle), sql.Named("id", params["id"]))
 	if err != nil {
 		panic(err.Error())
 	}
-	defer ad.Close()
+
+	defer result.Close()
+
 	fmt.Fprintf(w, "Book with ID = %s was updated", params["ID"])
 }
 
