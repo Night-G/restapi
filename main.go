@@ -38,14 +38,14 @@ func main() {
 	//route endpoints
 	router.HandleFunc("/books", getBooks).Methods("GET")                  // works
 	router.HandleFunc("/books/{id}", getBook).Methods("GET")              // works
-	router.HandleFunc("/books/create", createBook).Methods("POST")        // !N.W!
-	router.HandleFunc("/books/{id}", updateBook).Methods("PUT")           // !N.W!
+	router.HandleFunc("/books/create", createBook).Methods("POST")        // works
+	router.HandleFunc("/books/{id}", updateBook).Methods("PUT")           // works
 	router.HandleFunc("/books/delete/{id}", deleteBook).Methods("DELETE") // works
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
-//Get All Books
+//Get All Books ../books
 func getBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -70,7 +70,7 @@ func getBooks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
-//Get Single Book
+//Get Single Book ../books/{id}
 func getBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r) //Get params
@@ -94,19 +94,8 @@ func getBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-//Create a New Book !N.W!
+//Create a New Book ../books/create/{id}
 func createBook(w http.ResponseWriter, r *http.Request) {
-
-	//_, err := db.Query("INSERT INTO books(id,title) VALUES(@ID,@TITLE)", sql.Named("id", id), sql.Named("title", title))
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-
-	result, err := db.Query("SELECT * FROM Books WHERE id = @id", sql.Named("id", params["id"]))
-	if err != nil {
-		panic(err.Error())
-	}
-
-	defer result.Close()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -118,26 +107,19 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	title := keyVal["title"]
 	id := keyVal["id"]
 
-	result, err = db.Query("INSERT INTO books VALUES(@id,@title)", sql.Named("id", id), sql.Named("title", title))
+	a, err := db.Query("INSERT INTO books VALUES(@id,@title)", sql.Named("id", id), sql.Named("title", title))
 	if err != nil {
 		panic(err.Error())
 	}
 
-	defer result.Close()
+	defer a.Close()
+
 	fmt.Fprintf(w, "New book was created")
 }
 
-//updateBook !N.W!
+//updateBook ../books/{id}
 func updateBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-
-	result, err := db.Query("SELECT * FROM Books WHERE id = @id", sql.Named("id", params["id"]))
-	if err != nil {
-		panic(err.Error())
-	}
-
-	defer result.Close()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -148,21 +130,21 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &keyVal)
 	newTitle := keyVal["title"]
 
-	result, err = db.Query("UPDATE Books SET Title = @newTitle WHERE id = @id", sql.Named("newTitle", newTitle), sql.Named("id", params["id"]))
+	ad, err := db.Query("UPDATE Books SET Title = @newTitle WHERE id = @id",
+		sql.Named("newTitle", newTitle), sql.Named("id", params["id"]))
 	if err != nil {
 		panic(err.Error())
 	}
-
-	defer result.Close()
+	defer ad.Close()
 	fmt.Fprintf(w, "Book with ID = %s was updated", params["ID"])
 }
 
-//deleteBook
+//deleteBook ../books/delete/{id}
 func deleteBook(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r) //Get params
 
-	result, err := db.Query("DELETE FROM books WHERE id = @ID ", sql.Named("id", params["id"])) // incorrect syntax near '?' !исправлено!
+	result, err := db.Query("DELETE FROM books WHERE id = @ID ", sql.Named("id", params["id"]))
 	if err != nil {
 		panic(err.Error())
 	}
