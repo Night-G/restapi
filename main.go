@@ -36,11 +36,11 @@ func main() {
 	defer db.Close()
 
 	//route endpoints
-	router.HandleFunc("/books", getBooks).Methods("GET")
-	router.HandleFunc("/books/{id}", getBook).Methods("GET") //--------------
-	router.HandleFunc("/books", createBook).Methods("POST")
-	router.HandleFunc("/books/{id}", updateBook).Methods("PUT")
-	router.HandleFunc("/books/{id}", deleteBook).Methods("DELETE")
+	router.HandleFunc("/books", getBooks).Methods("GET")                  // works
+	router.HandleFunc("/books/{id}", getBook).Methods("GET")              // works
+	router.HandleFunc("/books/create", createBook).Methods("POST")        // !N.W!
+	router.HandleFunc("/books/{id}", updateBook).Methods("PUT")           // !N.W!
+	router.HandleFunc("/books/delete/{id}", deleteBook).Methods("DELETE") // !N.W!
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
@@ -73,9 +73,9 @@ func getBooks(w http.ResponseWriter, r *http.Request) {
 //Get Single Book
 func getBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r) //Get params //r
+	params := mux.Vars(r) //Get params
 
-	result, err := db.Query("SELECT * FROM books WHERE id = ?", params["id"])
+	result, err := db.Query("SELECT * FROM books WHERE id = @ID ", sql.Named("id", params["id"])) // incorrect syntax near '?' !исправлено!
 	if err != nil {
 		panic(err.Error())
 	}
@@ -95,10 +95,10 @@ func getBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-//Create a New Book
+//Create a New Book !N.W!
 func createBook(w http.ResponseWriter, r *http.Request) {
 
-	stmt, err := db.Prepare("INSERT INTO books(id,title) VALUES(?)")
+	stmt, err := db.Prepare("INSERT INTO books(id,title) VALUES(@ID,@TITLE)") // incorrect syntax near '?'
 	if err != nil {
 		panic(err.Error())
 	}
@@ -119,11 +119,11 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "New book was created")
 }
 
-//updateBook
+//updateBook !N.W!
 func updateBook(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	stmt, err := db.Prepare("UPDATE books SET title = ? WHERE id = ?")
+	stmt, err := db.Prepare("UPDATE books SET title = @TITLE WHERE id = @ID") // incorrect syntax near '?'
 	if err != nil {
 		panic(err.Error())
 	}
@@ -145,11 +145,11 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Book with id = %s was updated", params["id"])
 }
 
-//deleteBook
+//deleteBook   !N.W!
 func deleteBook(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	stmt, err := db.Prepare("DELETE from books WHERE id = ?")
+	stmt, err := db.Prepare("DELETE from books WHERE id = @ID")
 	if err != nil {
 		panic(err.Error())
 	}
